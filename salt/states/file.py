@@ -6250,7 +6250,7 @@ def patch(name,
             __opts__['test'] = orig_test
             sys.modules[__salt__['test.ping'].__module__].__opts__['test'] = orig_test
 
-        if not result['result']:
+        if result['result'] is False:
             log.debug(
                 'failed to download %s',
                 salt.utils.url.redact_http_basic_auth(source_match)
