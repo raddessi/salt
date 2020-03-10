@@ -27,3 +27,14 @@ in the salt mine function definition itself (or when calling :py:func:`mine.send
 This targeting works the same as the generic minion targeting as specified
 :ref:`here <targeting>`. The parameters used are ``allow_tgt`` and ``allow_tgt_type``.
 See also :ref:`the documentation of the Salt Mine <mine_minion-side-acl>`.
+
+State Execution Module
+============================================
+
+The :mod:`state.test <salt.modules.state.test>` function
+can be used to test a state on a minion. This works by executing the
+:mod:`state.apply <salt.modules.state.apply>` function while forcing the ``test`` kwarg
+to ``True`` so that the ``state.apply`` function is not required to be called by the
+user directly. This also allows you to add the ``state.test`` fucntion to a minion's 
+``minion_blackout_whitelist`` pillar if you wish to be able to test a state while a
+minion is in blackout.
