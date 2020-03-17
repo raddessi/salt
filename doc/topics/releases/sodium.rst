@@ -20,7 +20,6 @@ of the more uniform syntax of module.run.
 State Execution Module
 ======================
 
->>>>>>> 6dd29722db42a3990ea837055cac0d06c9aac726
 The :mod:`state.test <salt.modules.state.test>` function
 can be used to test a state on a minion. This works by executing the
 :mod:`state.apply <salt.modules.state.apply>` function while forcing the ``test`` kwarg
