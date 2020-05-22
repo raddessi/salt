@@ -15,6 +15,7 @@ import salt.serializers.plist as plistserializer
 import salt.serializers.python as pythonserializer
 import salt.serializers.yaml as yamlserializer
 import salt.states.file as filestate
+import salt.modules.test as salt_test
 import salt.utils.files
 import salt.utils.json
 import salt.utils.platform
@@ -36,7 +37,6 @@ except ImportError:
     HAS_DATEUTIL = False
 
 NO_DATEUTIL_REASON = "python-dateutil is not installed"
-
 
 log = logging.getLogger(__name__)
 
@@ -76,7 +76,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         returner.returned = None
 
         with patch.dict(filestate.__salt__, {"file.manage_file": returner}):
-
             dataset = {"foo": True, "bar": 42, "baz": [1, 2, 3], "qux": 2.0}
 
             filestate.serialize("/tmp", dataset)
@@ -116,7 +115,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
             filestate.__salt__,
             {"file.manage_file": returner, "config.manage_mode": manage_mode_mock},
         ):
-
             ret = filestate.managed(
                 "/tmp/foo", contents="hi", contents_pillar="foo:bar"
             )
@@ -145,7 +143,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
                 "pillar.get": pillar_mock,
             },
         ):
-
             ret = filestate.managed(path, contents_pillar=pillar_path)
 
             # make sure no errors are returned
@@ -769,7 +766,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_t
         ):
-
             expected = "File exists where the hard link {0} should be".format(name)
             ret = return_val(comment=expected, name=name)
             self.assertDictEqual(
@@ -786,7 +782,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_f
         ):
-
             expected = "Target of hard link {0} is already pointing " "to {1}".format(
                 name, target
             )
@@ -809,7 +804,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_f
         ):
-
             expected = "Set target of hard link {0} -> {1}".format(name, target)
             changes = dict(new=name)
             ret = return_val(result=True, comment=expected, name=name, changes=changes)
@@ -831,7 +825,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_f
         ):
-
             expected = "Unable to set target of hard link {0} -> " "{1}: {2}".format(
                 name, target, ""
             )
@@ -854,7 +847,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_f
         ):
-
             expected = "Created new hard link {0} -> {1}".format(name, target)
             changes = dict(new=name)
             ret = return_val(result=True, comment=expected, name=name, changes=changes)
@@ -876,7 +868,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_f
         ):
-
             expected = "Unable to create new hard link {0} -> " "{1}: {2}".format(
                 name, target, ""
             )
@@ -899,7 +890,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_t
         ):
-
             expected = "Created new hard link {0} -> {1}".format(name, target)
             changes = dict(new=name)
             changes["forced"] = "File for hard link was forcibly replaced"
@@ -923,7 +913,6 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         ), patch.object(
             os.path, "isfile", mock_t
         ):
-
             expected = "Unable to create new hard link {0} -> " "{1}: {2}".format(
                 name, target, ""
             )
@@ -2521,6 +2510,30 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
             self.assertDictEqual(filestate.mod_run_check_cmd(cmd, filename), ret)
 
             self.assertTrue(filestate.mod_run_check_cmd(cmd, filename))
+
+    # 'patch' function tests: 1
+
+    def test_patch_56338(self):
+        """
+        Test the fix for issue #56338
+        """
+        file_name = "nonexistant_file_alsdjfoghiohoiw"
+        with patch("os.path.isabs", return_value=True):
+            with patch("os.path.exists", return_value=True):
+                mock_source_list = MagicMock(return_value=[None])
+                salt_test.__opts__ = {"test": False}
+                with patch.dict(
+                    filestate.__salt__,
+                    {"file.source_list": mock_source_list, "test.ping": salt_test.ping},
+                ):
+                    with patch.object(
+                        filestate, "managed", return_value={"result": False}
+                    ):
+                        with patch(
+                            "salt.utils.url.redact_http_basic_auth", return_value=""
+                        ):
+                            ret = filestate.patch(file_name)
+                            self.assertFalse(ret["result"])
 
     @skipIf(not HAS_DATEUTIL, NO_DATEUTIL_REASON)
     @slowTest
