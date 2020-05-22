@@ -10,12 +10,12 @@ import shutil
 from datetime import datetime
 
 import salt.modules.file as filemod
+import salt.modules.test as salt_test
 import salt.serializers.json as jsonserializer
 import salt.serializers.plist as plistserializer
 import salt.serializers.python as pythonserializer
 import salt.serializers.yaml as yamlserializer
 import salt.states.file as filestate
-import salt.modules.test as salt_test
 import salt.utils.files
 import salt.utils.json
 import salt.utils.platform
