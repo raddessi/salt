@@ -2518,22 +2518,21 @@ class TestFileState(TestCase, LoaderModuleMockMixin):
         Test the fix for issue #56338
         """
         file_name = "nonexistant_file_alsdjfoghiohoiw"
-        with patch("os.path.isabs", return_value=True):
-            with patch("os.path.exists", return_value=True):
-                mock_source_list = MagicMock(return_value=[None])
-                salt_test.__opts__ = {"test": False}
-                with patch.dict(
-                    filestate.__salt__,
-                    {"file.source_list": mock_source_list, "test.ping": salt_test.ping},
-                ):
-                    with patch.object(
-                        filestate, "managed", return_value={"result": False}
-                    ):
-                        with patch(
-                            "salt.utils.url.redact_http_basic_auth", return_value=""
-                        ):
-                            ret = filestate.patch(file_name)
-                            self.assertFalse(ret["result"])
+        mock_source_list = MagicMock(return_value=[None])
+        setattr(salt_test, "__opts__", {"test", False})
+
+        with patch("os.path.isabs", return_value=True) and patch(
+            "os.path.exists", return_value=True
+        ) and patch.dict(
+            filestate.__salt__,
+            {"file.source_list": mock_source_list, "test.ping": salt_test.ping},
+        ) and patch.object(
+            filestate, "managed", return_value={"result": False}
+        ) and patch(
+            "salt.utils.url.redact_http_basic_auth", return_value=""
+        ):
+            ret = filestate.patch(file_name)
+            self.assertFalse(ret["result"])
 
     @skipIf(not HAS_DATEUTIL, NO_DATEUTIL_REASON)
     @slowTest
